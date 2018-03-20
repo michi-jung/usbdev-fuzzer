@@ -1,0 +1,2 @@
+A fuzzer program to help debug NuttX USB Device (usbdev) SoC Driver
+implementations.
