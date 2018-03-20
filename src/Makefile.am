@@ -4,4 +4,5 @@ ACLOCAL_AMFLAGS = -I m4
 bin_PROGRAMS = usbdev-fuzzer
 
 usbdev_fuzzer_SOURCES = usbdev-fuzzer.c
-usbdev_fuzzer_LDADD = -lusb-1.0
+usbdev_fuzzer_CFLAGS = $(LIBUSB_CFLAGS)
+usbdev_fuzzer_LDADD = $(LIBUSB_LIBS)
