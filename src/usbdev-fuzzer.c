@@ -4,6 +4,34 @@
 
 #include <libusb-1.0/libusb.h>
 
+/* Argument Parsing */
+
+const char *argp_program_version = PACKAGE_VERSION;
+const char *argp_program_bug_address = "mijung@gmx.net";
+
+static const struct argp_option argp_options[] = {
+	{ NULL, 's', "bus:devnum", 0, "Fuzz the USB device at bus:devnum", 0 },
+	{ 0 }
+};
+
+static error_t arg_parser(int key, char *arg, struct argp_state *state)
+{
+	switch (key) {
+		case 's':
+			break;
+
+		default:
+			return ARGP_ERR_UNKNOWN;
+	}
+
+	return 0;
+}
+
+static const struct argp argp_parser = {
+	.options = argp_options,
+	.parser = arg_parser
+};
+
 #define VENDOR_ID 0x1D6Bu
 #define PRODUCT_ID 0x0129u
 
@@ -23,21 +51,23 @@ static int dump_device_descriptor(libusb_device_handle *dev)
 	printf("bDeviceSubClass:    0x%02hhx\n", desc.bDeviceSubClass);
 	printf("bDeviceProtocol:    0x%02hhx\n", desc.bDeviceProtocol);
 	printf("bMaxPacketSize0:    %hhu\n",     desc.bMaxPacketSize0);
-        printf("idVendor:           0x%04hx\n",  desc.idVendor); 
-        printf("idProduct:          0x%04hx\n",  desc.idProduct);
+	printf("idVendor:           0x%04hx\n",  desc.idVendor);
+	printf("idProduct:          0x%04hx\n",  desc.idProduct);
 	printf("bcdDevice:          0x%04hx\n",  desc.bcdDevice);
 	printf("iManufacturer:      %hhu\n",     desc.iManufacturer);
 	printf("iProduct:           %hhu\n",     desc.iProduct);
 	printf("iSerialNumber:      %hhu\n",     desc.iSerialNumber);
-	printf("bNumConfigurations: %hhu\n",     desc.bNumConfigurations); 
+	printf("bNumConfigurations: %hhu\n",     desc.bNumConfigurations);
 
 	return rc;
 }
 
-int main(int argc, const char *argv[])
+int main(int argc, char *argv[])
 {
 	libusb_device_handle *dev = NULL;
 	int rc = 0;
+
+	argp_parse(&argp_parser, argc, argv, 0, NULL, NULL);
 
 	rc = libusb_init(NULL);
 	if (rc < 0)
