@@ -61,6 +61,18 @@ static libusb_device_handle *find_device(libusb_context *ctx,
 			break;
 		}
 
+		rc = libusb_set_auto_detach_kernel_driver(handle, 1);
+
+		if (rc < 0) {
+			fprintf(stderr, "libusb_set_auto_detach_kernel_driver "
+				"failed: %s\n", libusb_strerror(rc));
+
+			libusb_close(handle);
+			handle = NULL;
+
+			break;
+		}
+
 		break;
 	}
 
@@ -99,29 +111,46 @@ static int dump_device_descriptor(libusb_device_handle *dev)
 int main(int argc, char *argv[])
 {
 	struct usbdev_fuzzer_args args = { 0 };
-	libusb_device_handle *dev = NULL;
-	int rc = 0;
+	libusb_context *ctx = NULL;
+	libusb_device_handle *hnd = NULL;
+	int rc = 0, exitcode = EXIT_FAILURE;
 
 	rc = argp_parse(&usbdev_fuzzer_argp_parser, argc, argv, 0, NULL, &args);
 	if (rc)
-		return EXIT_FAILURE;
+		goto done;
 
-	rc = libusb_init(NULL);
-	if (rc < 0)
-		return EXIT_FAILURE;
-
-	dev = find_device(NULL, &args.dev_filter);
-	if (!dev) {
-		fprintf(stderr, "No matching device found!\n");
-		return EXIT_FAILURE;
+	rc = libusb_init(&ctx);
+	if (rc < 0) {
+		fprintf(stderr, "libusb_init failed. rc: %d\n", rc);
+		goto done;
 	}
 
-	rc = dump_device_descriptor(dev);
-	if (rc < 0)
-		return EXIT_FAILURE;
+	hnd = find_device(ctx, &args.dev_filter);
+	if (!hnd) {
+		fprintf(stderr, "No matching device found!\n");
+		goto done;
+	}
 
-	libusb_close(dev);
-	libusb_exit(NULL);
+	rc = dump_device_descriptor(hnd);
+	if (rc < 0) {
+		fprintf(stderr, "Dumping USB Device Descriptor failed. "
+			"rc: %d\n", rc);
+		goto done;
+	}
 
-	return EXIT_SUCCESS;
+	rc = usbdev_fuzz_setup(hnd);
+	if (rc < 0) {
+		fprintf(stderr, "Setup Fuzzing failed. rc: %d\n", rc);
+		goto done;
+	}
+
+	exitcode = EXIT_SUCCESS;
+done:
+	if (hnd)
+		libusb_close(hnd);
+
+	if (ctx)
+		libusb_exit(ctx);
+
+	return exitcode;
 }

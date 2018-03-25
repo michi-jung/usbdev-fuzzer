@@ -5,6 +5,8 @@
 #include <stdint.h>
 #include <argp.h>
 
+#include <libusb-1.0/libusb.h>
+
 struct usbdev_filter {
 	bool bus_devnum : 1;
 	bool vendor_product : 1;
@@ -19,5 +21,7 @@ struct usbdev_fuzzer_args {
 };
 
 extern const struct argp usbdev_fuzzer_argp_parser;
+
+int usbdev_fuzz_setup(libusb_device_handle *dev_handle);
 
 #endif /* ndef SRC_INCLUDE_USBDEV_FUZZER */
