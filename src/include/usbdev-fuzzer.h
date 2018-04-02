@@ -24,4 +24,8 @@ extern const struct argp usbdev_fuzzer_argp_parser;
 
 int usbdev_fuzz_setup(libusb_device_handle *dev_handle);
 
+/* Vendor Specific USB Requests */
+
+#define USBDEV_FUZZER_REQ_ECHOONBULKIN (0)
+
 #endif /* ndef SRC_INCLUDE_USBDEV_FUZZER */

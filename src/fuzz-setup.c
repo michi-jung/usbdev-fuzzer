@@ -6,6 +6,7 @@ int usbdev_fuzz_setup(libusb_device_handle *dev)
 	char hello[] = "Hello NuttX!";
 	char buffer[256];
 	int rc = 0, transferred = 0;
+	uint8_t request_type = 0;
 
 	rc = libusb_set_configuration(dev, 1);
 	if (rc) {
@@ -21,9 +22,14 @@ int usbdev_fuzz_setup(libusb_device_handle *dev)
 		goto done;
 	}
 
-	rc = libusb_control_transfer(dev, LIBUSB_ENDPOINT_OUT | LIBUSB_REQUEST_TYPE_VENDOR |
-				     LIBUSB_RECIPIENT_DEVICE, 0x01, 0x100, 0,
-				     (unsigned char *)hello, sizeof(hello), 100);
+	request_type = LIBUSB_ENDPOINT_OUT | LIBUSB_REQUEST_TYPE_VENDOR |
+		       LIBUSB_RECIPIENT_DEVICE;
+
+	rc = libusb_control_transfer(dev, request_type,
+				     USBDEV_FUZZER_REQ_ECHOONBULKIN,
+                                     0, 0,
+				     (unsigned char *)hello, sizeof(hello),
+				     100 /*ms*/);
 	if (rc < 0) {
 		fprintf(stderr, "libusb_control_transfer() failed. rc: %d\n",
 			rc);
